@@ -16,32 +16,32 @@ Para a modelagem do banco pensei no seguinte:
 
 ### Entidade: User
 
-| Campo | Tipo | Constraint |
-|-------|------|------------|
-| `id` | UUID | PRIMARY KEY, NOT NULL |
-| `email` | String | UNIQUE, NOT NULL |
-| `password` | String | NOT NULL |
-| `name` | String | NULL |
-| `role` | String | NULL |
-| `avatar` | String | NULL |
+| Campo       | Tipo      | Constraint              |
+| ----------- | --------- | ----------------------- |
+| `id`        | UUID      | PRIMARY KEY, NOT NULL   |
+| `email`     | String    | UNIQUE, NOT NULL        |
+| `password`  | String    | NOT NULL                |
+| `name`      | String    | NULL                    |
+| `role`      | String    | NULL                    |
 | `createdAt` | Timestamp | NOT NULL, DEFAULT NOW() |
 
 ### Entidade: Tasks
 
-| Campo | Tipo | Constraint |
-|-------|------|------------|
-| `id` | UUID | PRIMARY KEY, NOT NULL |
-| `createdBy` | UUID | FOREIGN KEY (User.id), NOT NULL |
-| `assignedTo` | UUID | FOREIGN KEY (User.id), NULL |
-| `title` | String | NOT NULL |
-| `status` | Enum | NOT NULL, DEFAULT 'PENDING' |
-| `dueDate` | Date | NULL |
-| `startDate` | Date | NULL |
-| `description` | Text | NULL |
-| `type` | Enum | NOT NULL, DEFAULT 'TASK' |
-| `createdAt` | Timestamp | NOT NULL, DEFAULT NOW() |
-| `updatedAt` | Timestamp | NULL |
-| `updatedLastBy` | UUID | FOREIGN KEY (User.id), NULL |
+| Campo           | Tipo      | Constraint                      |
+| --------------- | --------- | ------------------------------- |
+| `id`            | UUID      | PRIMARY KEY, NOT NULL           |
+| `createdBy`     | UUID      | FOREIGN KEY (User.id), NOT NULL |
+| `assignedTo`    | UUID      | FOREIGN KEY (User.id), NULL     |
+| `parentId`      | UUID      | FOREIGN KEY (Tasks.id), NULL    |
+| `title`         | String    | NOT NULL                        |
+| `status`        | Enum      | NOT NULL, DEFAULT 'PENDING'     |
+| `dueDate`       | Date      | NULL                            |
+| `startDate`     | Date      | NULL                            |
+| `description`   | Text      | NULL                            |
+| `type`          | Enum      | NOT NULL, DEFAULT 'TASK'        |
+| `createdAt`     | Timestamp | NOT NULL, DEFAULT NOW()         |
+| `updatedAt`     | Timestamp | NULL                            |
+| `updatedLastBy` | UUID      | FOREIGN KEY (User.id), NULL     |
 
 ## Design do Frontend
 
@@ -52,12 +52,14 @@ Para o design do front pensei em algo parecido com Jira na visualização drag a
 Dividi as seguintes tarefas:
 
 ### EPIC - SETUP
+
 - Fork repo de instrução
 - Setup monorepo
 - Setup front
 - Setup back
 
 ### EPIC - BACK
+
 - Configurar libs back
 - Configurar migrations back
 - CRUD User
@@ -65,6 +67,7 @@ Dividi as seguintes tarefas:
 - CRUD TASKS
 
 ### EPIC - FRONT
+
 - Configurar libs front
 - Configurar stores User e Task
 - Criar layout padrão
@@ -86,4 +89,6 @@ Irei utilizar o Cursor para o desenvolvimento.
 ### Utilizações de IA Generativa
 
 1 - Estou escrevendo neste documento de forma livre, ao final de cada vez que escrever irei solicitar para apenas organizar e formatar em markdown, mantendo exatamente o que escrevi.
-2 - Solicitei auxílio para configurar o devcontainer deste projeto. Ainda não tenho total domínio na criação e para não demandar tanto tempo preferi solicitar à IA. 
+2 - Solicitei auxílio para configurar o devcontainer deste projeto. Ainda não tenho total domínio na criação e para não demandar tanto tempo preferi solicitar à IA.
+3 - Encontrei problemas ao executar os scripts de migration no monorepo com pnpm. Os scripts estavam configurados para ambientes com npm e não-monorepo, resultando em erro de duplicidade de `--` ao passar argumentos. A solução foi criar um script shell [`migration-generate.sh`](./apps/api/scripts/migration-generate.sh) que repassa corretamente os argumentos para o TypeORM CLI.
+4 - Solicitei a criação de testes e2e para a api

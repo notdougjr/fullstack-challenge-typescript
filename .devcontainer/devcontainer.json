@@ -1,19 +1,23 @@
 {
   "name": "Templo Monorepo",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bullseye",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace/templo",
 
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
   },
 
-  "postCreateCommand": "sudo mkdir -p /usr/local/share/pnpm && sudo chown -R node:node /usr/local/share/pnpm && sudo corepack enable && sudo corepack prepare pnpm@10.26.0 --activate && sudo chown -R node:node /usr/local/share/pnpm && pnpm install --force",
-
-  "workspaceFolder": "/workspace",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "postCreateCommand": "sudo mkdir -p /usr/local/share/pnpm && sudo chown -R node:node /usr/local/share/pnpm && sudo corepack enable && sudo corepack prepare pnpm@10.26.0 --activate && sudo chown -R node:node /usr/local/share/pnpm && sudo chown -R node:node /workspace/templo && sudo rm -rf /workspace/templo/node_modules 2>/dev/null || true && cd /workspace/templo && pnpm install --force",
 
   "remoteEnv": {
     "PNPM_HOME": "/usr/local/share/pnpm",
-    "PATH": "${containerEnv:PATH}:/usr/local/share/pnpm"
+    "PATH": "${containerEnv:PATH}:/usr/local/share/pnpm",
+    "DB_HOST": "postgres",
+    "DB_PORT": "5432",
+    "DB_USERNAME": "postgres",
+    "DB_PASSWORD": "postgres",
+    "DB_DATABASE": "postgres"
   },
 
   "customizations": {
@@ -45,7 +49,7 @@
     }
   },
 
-  "forwardPorts": [3000, 3001],
+  "forwardPorts": [3000, 3001, 5432],
   "portsAttributes": {
     "3000": {
       "label": "Frontend (Next.js)",
@@ -54,6 +58,10 @@
     "3001": {
       "label": "Backend (NestJS)",
       "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "ignore"
     }
   },
 
