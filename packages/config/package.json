@@ -1,0 +1,24 @@
+{
+  "name": "config",
+  "version": "1.0.0",
+  "description": "share config for the project",
+  "author": "@notdougjr",
+  "private": true,
+  "scripts": {
+    "build": "tsup"
+  },
+  "exports":{
+    "./typescript": "./dist/tsconfig.json",
+    "./jest": {
+      "types": "./dist/jest.config.d.ts",
+      "import": "./dist/jest.config.mjs",
+      "require": "./dist/jest.config.js"
+    }
+  },
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.0",
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "jest": "catalog:"
+  }
+}

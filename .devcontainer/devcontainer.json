@@ -1,0 +1,63 @@
+{
+  "name": "Templo Monorepo",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bullseye",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  "postCreateCommand": "sudo mkdir -p /usr/local/share/pnpm && sudo chown -R node:node /usr/local/share/pnpm && sudo corepack enable && sudo corepack prepare pnpm@10.26.0 --activate && sudo chown -R node:node /usr/local/share/pnpm && pnpm install --force",
+
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  "remoteEnv": {
+    "PNPM_HOME": "/usr/local/share/pnpm",
+    "PATH": "${containerEnv:PATH}:/usr/local/share/pnpm"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next",
+        "orta.vscode-jest",
+        "firsttris.vscode-jest-runner"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "files.exclude": {
+          "**/.git": true,
+          "**/.DS_Store": true,
+          "**/node_modules": true,
+          "**/dist": true,
+          "**/.next": true
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [3000, 3001],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend (Next.js)",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Backend (NestJS)",
+      "onAutoForward": "notify"
+    }
+  },
+
+  "postStartCommand": "pnpm --version && node --version",
+
+  "remoteUser": "node"
+}

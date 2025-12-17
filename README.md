@@ -1,67 +1,89 @@
-# Teste Técnico - Desenvolvedor Fullstack TypeScript
+# Arquitetura
 
+Após a leitura das instruções em [README_INSTRUCTIONS.md](./README_INSTRUCTIONS.md), decidi optar por uma infraestrutura Monorepo - no mesmo repositório irei compartilhar configurações entre front e back, por ser uma estrutura simples e ao mesmo tempo robusta, que irá me permitir ter uma visão compacta do código.
 
-## Como Executar o Teste
+## Tecnologias
 
-Você terá liberdade total para escolher suas tecnologias e arquitetura, desde que utilize TypeScript tanto no frontend quanto no backend.
+Configurei com pnpm workspace e turbo repo. As tecnologias do front serão - Next, Zustand, Tailwind, Shadcn. As tecnologias do back serão - Nestjs, Postgres, TypeORM para migrations... zod para ambos.
 
-1. Faça um fork deste repositório
-2. Crie um arquivo `README.md` na raiz do projeto contendo:
-- **Arquitetura:** Explique brevemente as decisões arquiteturais que tomou
-- **Tecnologias:** Liste todas as tecnologias, bibliotecas e ferramentas utilizadas
-- **Como executar:** Instruções passo a passo para rodar a aplicação localmente
-- **Decisões de Design:** Explique escolhas importantes (por que escolheu X tecnologia, como estruturou o projeto, etc.)
-3. Faça a gravação da sua jornada e disponibilize no YouTube (como não listado), ao final, responda o e-mail que foi enviado para você com o link do vídeo.
+## Modelagem do Banco de Dados
 
-**IMPORTANTE:** Permitimos o uso de IA Generativa. No entanto, você DEVE documentar:
-- **Quando você usou IA:** Liste todas as situações em que utilizou IA Generativa
-- **Por que você usou:** Explique o motivo do uso da IA Generativa.
-- **Honestidade:** Seja transparente - não há problema em usar IA, mas é essencial que você compreenda o código que entregou
+Para a modelagem do banco pensei no seguinte:
+
+### Entidades
+
+**User** e **Tasks**
+
+### Entidade: User
+
+| Campo | Tipo | Constraint |
+|-------|------|------------|
+| `id` | UUID | PRIMARY KEY, NOT NULL |
+| `email` | String | UNIQUE, NOT NULL |
+| `password` | String | NOT NULL |
+| `name` | String | NULL |
+| `role` | String | NULL |
+| `avatar` | String | NULL |
+| `createdAt` | Timestamp | NOT NULL, DEFAULT NOW() |
+
+### Entidade: Tasks
+
+| Campo | Tipo | Constraint |
+|-------|------|------------|
+| `id` | UUID | PRIMARY KEY, NOT NULL |
+| `createdBy` | UUID | FOREIGN KEY (User.id), NOT NULL |
+| `assignedTo` | UUID | FOREIGN KEY (User.id), NULL |
+| `title` | String | NOT NULL |
+| `status` | Enum | NOT NULL, DEFAULT 'PENDING' |
+| `dueDate` | Date | NULL |
+| `startDate` | Date | NULL |
+| `description` | Text | NULL |
+| `type` | Enum | NOT NULL, DEFAULT 'TASK' |
+| `createdAt` | Timestamp | NOT NULL, DEFAULT NOW() |
+| `updatedAt` | Timestamp | NULL |
+| `updatedLastBy` | UUID | FOREIGN KEY (User.id), NULL |
+
+## Design do Frontend
+
+Para o design do front pensei em algo parecido com Jira na visualização drag and drop e listagem de subtarefas.
+
+## Divisão de Tarefas
+
+Dividi as seguintes tarefas:
+
+### EPIC - SETUP
+- Fork repo de instrução
+- Setup monorepo
+- Setup front
+- Setup back
+
+### EPIC - BACK
+- Configurar libs back
+- Configurar migrations back
+- CRUD User
+- Criar lógicas de autenticação
+- CRUD TASKS
+
+### EPIC - FRONT
+- Configurar libs front
+- Configurar stores User e Task
+- Criar layout padrão
+- Criar tela de Registro
+- Criar tela de Login
+- Criar tela de listagem - Blocos de tarefas por status e drag and drop entre os status
+- Criar modal de visualização de task
+- Criar listagem de subtarefas dentro de tarefa
+- Criar tela de visualização de task separada
 
 ---
 
-## História de Usuário
+## Desenvolvimento
 
-### Como um usuário, eu quero gerenciar minhas tarefas pessoais
-
-**Contexto:**
-Você precisa desenvolver uma aplicação web completa que permita aos usuários criar, visualizar, editar e excluir tarefas pessoais. As tarefas devem ter título, descrição, status (pendente/concluída) e data de criação.
-
-**Requisitos Funcionais:**
-
-1. **Autenticação de Usuário**
-   - O usuário deve poder se cadastrar com email e senha
-   - O usuário deve poder fazer login
-   - O usuário deve poder fazer logout
-   - As rotas devem ser protegidas (apenas usuários autenticados podem acessar)
-
-2. **Gerenciamento de Tarefas**
-   - Listar todas as tarefas do usuário logado
-   - Criar nova tarefa (título obrigatório, descrição opcional)
-   - Editar tarefa existente
-   - Excluir tarefa
-   - Marcar tarefa como concluída/pendente
-
-3. **Interface do Usuário**
-   - Interface moderna e responsiva
-   - Validação de formulários no frontend
-
-**Requisitos Técnicos:**
-
-- **Backend:**
-  - API RESTful em TypeScript
-  - Banco de dados (sua escolha: PostgreSQL, MongoDB, SQLite, etc.)
-  - Autenticação JWT
-  - Validação de dados de entrada
-  - Tratamento de erros adequado
-
-- **Frontend:**
-  - Aplicação em TypeScript 
-  - Consumo da API REST
-  - Gerenciamento de estado
-  - Roteamento
-  - Resposividade
+Irei utilizar o Cursor para o desenvolvimento.
 
 ---
 
-Boa sorte!
+### Utilizações de IA Generativa
+
+1 - Estou escrevendo neste documento de forma livre, ao final de cada vez que escrever irei solicitar para apenas organizar e formatar em markdown, mantendo exatamente o que escrevi.
+2 - Solicitei auxílio para configurar o devcontainer deste projeto. Ainda não tenho total domínio na criação e para não demandar tanto tempo preferi solicitar à IA. 
