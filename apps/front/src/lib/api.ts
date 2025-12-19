@@ -21,6 +21,14 @@ export async function fetchTasks() {
   return response.json();
 }
 
+export async function fetchTask(id: string) {
+  const response = await fetch(`${API_URL}/task/${id}`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error("Failed to fetch task");
+  return response.json();
+}
+
 export async function createTask(data: any) {
   const response = await fetch(`${API_URL}/task`, {
     method: "POST",
@@ -47,7 +55,9 @@ export async function deleteTask(id: string) {
     headers: getHeaders(),
   });
   if (!response.ok) throw new Error("Failed to delete task");
-  return response.json();
+  if (response.status === 204) return null;
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function fetchUsers() {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { TaskCard } from "@/components/task-card";
-import { TaskStatus, type Task } from "@/lib/types";
+import { TaskStatus, TaskType, type Task } from "@/lib/types";
 import { getKanbanColumns } from "@/lib/task-utils";
 import { fetchTasks, updateTask } from "@/lib/api";
 import { useTaskDialog } from "@/contexts/task-dialog-context";
@@ -30,12 +30,14 @@ export function KanbanBoard() {
   const loadTasks = async () => {
     try {
       const data = await fetchTasks();
-      const formattedTasks = data.map((task: any) => ({
-        ...task,
-        createdAt: new Date(task.createdAt),
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-        startDate: task.startDate ? new Date(task.startDate) : undefined,
-      }));
+      const formattedTasks = data
+        .filter((task: any) => task.type !== TaskType.SUBTASK)
+        .map((task: any) => ({
+          ...task,
+          createdAt: new Date(task.createdAt),
+          dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+          startDate: task.startDate ? new Date(task.startDate) : undefined,
+        }));
       setTasks(formattedTasks);
     } catch (error) {
       console.error(error);

@@ -14,7 +14,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     const isAuthPage = pathname === "/login" || pathname === "/signup";
 
     if (!authenticated && !isAuthPage) {
-      router.push("/login");
+      router.push("/signup");
       return;
     }
 
@@ -36,4 +36,3 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
