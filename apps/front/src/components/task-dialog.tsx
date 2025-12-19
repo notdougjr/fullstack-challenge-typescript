@@ -84,7 +84,11 @@ export function TaskDialog({
   const [subtasks, setSubtasks] = useState<Task[]>([]);
   const [selectedSubtask, setSelectedSubtask] = useState<Task | null>(null);
   const [showSubtaskViewDialog, setShowSubtaskViewDialog] = useState(false);
-  const formId = useRef(`task-form-${Date.now()}-${Math.random()}`).current;
+  const formId = useRef<string | undefined>(undefined);
+
+  if (!formId.current) {
+    formId.current = `task-form-${Date.now()}-${Math.random()}`;
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -161,7 +165,7 @@ export function TaskDialog({
     }
   }, [open, mode]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -170,30 +174,38 @@ export function TaskDialog({
     }
 
     if (mode === "create" && onCreate) {
-      onCreate({
-        ...formData,
-        type: parentTask ? TaskType.SUBTASK : TaskType.TASK,
-        parentId: parentTask?.id,
-        assignedTo: formData.assignedTo || undefined,
-      } as CreateTaskInput);
-      onOpenChange(false);
-      setFormData({
-        title: "",
-        description: "",
-        status: TaskStatus.PENDING,
-        assignedTo: "",
-      });
-    } else if (mode === "view" && task && onUpdate && isEditing) {
-      const updatePayload: UpdateTaskInput = {
-        id: task.id,
-        ...formData,
-      };
-      if (!formData.assignedTo || formData.assignedTo.trim() === "") {
-        updatePayload.assignedTo = undefined;
+      try {
+        await onCreate({
+          ...formData,
+          type: parentTask ? TaskType.SUBTASK : TaskType.TASK,
+          parentId: parentTask?.id,
+          assignedTo: formData.assignedTo || undefined,
+        } as CreateTaskInput);
+        onOpenChange(false);
+        setFormData({
+          title: "",
+          description: "",
+          status: TaskStatus.PENDING,
+          assignedTo: "",
+        });
+      } catch (error) {
+        console.error("Erro ao criar tarefa:", error);
       }
-      onUpdate(updatePayload);
-      setIsEditing(false);
-      onOpenChange(false);
+    } else if (mode === "view" && task && onUpdate && isEditing) {
+      try {
+        const updatePayload: UpdateTaskInput = {
+          id: task.id,
+          ...formData,
+        };
+        if (!formData.assignedTo || formData.assignedTo.trim() === "") {
+          updatePayload.assignedTo = undefined;
+        }
+        await onUpdate(updatePayload);
+        setIsEditing(false);
+        onOpenChange(false);
+      } catch (error) {
+        console.error("Erro ao atualizar tarefa:", error);
+      }
     }
   };
 
@@ -267,7 +279,7 @@ export function TaskDialog({
           )}
 
           <form
-            id={formId}
+            id={formId.current}
             onSubmit={handleSubmit}
             className="space-y-6"
             onKeyDown={(e) => {
@@ -562,7 +574,7 @@ export function TaskDialog({
               >
                 Cancelar
               </Button>
-              <Button type="submit" form={formId}>
+              <Button type="submit" form={formId.current}>
                 {mode === "create" ? "Criar Tarefa" : "Salvar Alterações"}
               </Button>
             </>

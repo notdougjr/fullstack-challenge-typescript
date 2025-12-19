@@ -52,7 +52,6 @@ export function TaskDialogProvider({ children }: TaskDialogProviderProps) {
       };
       await createTask(payload);
       toast.success("Tarefa criada com sucesso!");
-      closeDialog();
     } catch (error: any) {
       toast.error(error.message || "Erro ao criar tarefa");
       throw error;
@@ -69,7 +68,6 @@ export function TaskDialogProvider({ children }: TaskDialogProviderProps) {
       };
       await updateTask(id, payload);
       toast.success("Tarefa atualizada com sucesso!");
-      closeDialog();
     } catch (error: any) {
       toast.error(error.message || "Erro ao atualizar tarefa");
       throw error;
