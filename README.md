@@ -92,3 +92,4 @@ Irei utilizar o Cursor para o desenvolvimento.
 2 - Solicitei auxílio para configurar o devcontainer deste projeto. Ainda não tenho total domínio na criação e para não demandar tanto tempo preferi solicitar à IA.
 3 - Encontrei problemas ao executar os scripts de migration no monorepo com pnpm. Os scripts estavam configurados para ambientes com npm e não-monorepo, resultando em erro de duplicidade de `--` ao passar argumentos. A solução foi criar um script shell [`migration-generate.sh`](./apps/api/scripts/migration-generate.sh) que repassa corretamente os argumentos para o TypeORM CLI.
 4 - Solicitei a criação de testes e2e para a api
+5 - Solicitei a criação dos tipos compartilhados das tasks, por ja ter definido manualmente no enum, acredito que o agente conseguirá ter um bom output

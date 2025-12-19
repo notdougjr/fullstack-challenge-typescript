@@ -4,16 +4,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { TaskStatus, TaskType } from '@templo/types';
 
-export enum TaskStatus {
-  PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
-}
-
-export enum TaskType {
-  TASK = 'TASK',
-  SUBTASK = 'SUBTASK',
-}
+export { TaskStatus, TaskType };
 
 @Entity()
 export class Task {
