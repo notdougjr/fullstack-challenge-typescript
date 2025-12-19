@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppHeader } from "@/components/app-header";
+import { AuthGuard } from "@/components/auth-guard";
+import { TaskDialogProvider } from "@/contexts/task-dialog-context";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +31,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthGuard>
+            <TaskDialogProvider>{children}</TaskDialogProvider>
+          </AuthGuard>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

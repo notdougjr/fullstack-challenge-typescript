@@ -1,13 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { KanbanBoard } from "@/components/kanban-board";
-import { TaskDialog } from "@/components/task-dialog";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, LogOut } from "lucide-react";
+import { logout } from "@/lib/api";
+import { useTaskDialog } from "@/contexts/task-dialog-context";
 
 export default function Home() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const router = useRouter();
+  const { openCreateDialog } = useTaskDialog();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logout realizado com sucesso!");
+      router.push("/login");
+    } catch (error: any) {
+      toast.error("Erro ao fazer logout");
+      router.push("/login");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,27 +33,23 @@ export default function Home() {
                 Gerenciador de Projetos
               </h1>
             </div>
-            <span className="text-sm text-muted-foreground">/</span>
-            <span className="text-sm text-muted-foreground">
-              Board do Projeto
-            </span>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Criar Tarefa
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={openCreateDialog} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Criar Tarefa
+            </Button>
+            <Button onClick={handleLogout} variant="outline" className="gap-2">
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="p-6">
         <KanbanBoard />
       </main>
-
-      <TaskDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        mode="create"
-      />
     </div>
   );
 }

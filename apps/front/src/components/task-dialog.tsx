@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,8 +23,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Calendar, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { TaskStatus, TaskType, type Task } from "@/lib/types";
+import {
+  TaskStatus,
+  TaskType,
+  type Task,
+  type CreateTaskInput,
+} from "@/lib/types";
 import { getTaskStatusLabel } from "@/lib/task-utils";
+import { fetchUsers } from "@/lib/api";
 
 interface User {
   id: string;
@@ -38,7 +44,7 @@ interface TaskDialogProps {
   mode: "create" | "view";
   task?: Task | null;
   users?: User[];
-  onCreate?: (task: Omit<Task, "id" | "createdAt">) => void;
+  onCreate?: (task: CreateTaskInput) => void;
   onUpdate?: (task: Task) => void;
   onDelete?: (taskId: string) => void;
 }
@@ -48,20 +54,46 @@ export function TaskDialog({
   onOpenChange,
   mode,
   task,
-  users = [],
+  users: propUsers = [],
   onCreate,
   onUpdate,
   onDelete,
 }: TaskDialogProps) {
   const [isEditing, setIsEditing] = useState(mode === "create");
+  const [users, setUsers] = useState<User[]>(propUsers);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     status: TaskStatus.PENDING,
     assignedTo: "",
   });
+  const isEditingRef = useRef(false);
 
   useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const fetchedUsers = await fetchUsers();
+        setUsers(fetchedUsers);
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+
+    if (open) {
+      loadUsers();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      isEditingRef.current = false;
+      return;
+    }
+
+    if (isEditingRef.current) {
+      return;
+    }
+
     if (task && mode === "view") {
       setFormData({
         title: task.title,
@@ -78,19 +110,31 @@ export function TaskDialog({
         assignedTo: "",
       });
       setIsEditing(true);
+      isEditingRef.current = true;
     }
   }, [task, mode, open]);
 
+  useEffect(() => {
+    if (!open) {
+      setIsEditing(mode === "create");
+      isEditingRef.current = false;
+    }
+  }, [open, mode]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+
+    if (mode === "view" && !isEditing) {
+      return;
+    }
 
     if (mode === "create" && onCreate) {
       onCreate({
         ...formData,
         type: TaskType.TASK,
-        createdBy: "current-user-id",
         assignedTo: formData.assignedTo || undefined,
-      });
+      } as CreateTaskInput);
       onOpenChange(false);
       setFormData({
         title: "",
@@ -98,8 +142,17 @@ export function TaskDialog({
         status: TaskStatus.PENDING,
         assignedTo: "",
       });
-    } else if (mode === "view" && task && onUpdate) {
-      onUpdate({ ...task, ...formData });
+    } else if (mode === "view" && task && onUpdate && isEditing) {
+      const updatePayload: Task = {
+        ...task,
+        ...formData,
+      };
+      if (formData.assignedTo && formData.assignedTo.trim() !== "") {
+        updatePayload.assignedTo = formData.assignedTo;
+      } else {
+        updatePayload.assignedTo = undefined;
+      }
+      onUpdate(updatePayload);
       setIsEditing(false);
       onOpenChange(false);
     }
@@ -132,7 +185,15 @@ export function TaskDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form 
+          onSubmit={handleSubmit} 
+          className="space-y-6"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && mode === "view" && !isEditing) {
+              e.preventDefault();
+            }
+          }}
+        >
           {mode === "view" && task && !isEditing && (
             <div className="space-y-6">
               <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
@@ -318,7 +379,23 @@ export function TaskDialog({
                   <Trash2 className="h-4 w-4" />
                   Excluir
                 </Button>
-                <Button type="button" onClick={() => setIsEditing(true)}>
+                <Button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isEditingRef.current = true;
+                    if (task) {
+                      setFormData({
+                        title: task.title,
+                        description: task.description || "",
+                        status: task.status,
+                        assignedTo: task.assignedTo || "",
+                      });
+                    }
+                    setIsEditing(true);
+                  }}
+                >
                   Editar
                 </Button>
               </>
@@ -329,7 +406,16 @@ export function TaskDialog({
                   variant="outline"
                   onClick={() => {
                     if (mode === "view") {
+                      isEditingRef.current = false;
                       setIsEditing(false);
+                      if (task) {
+                        setFormData({
+                          title: task.title,
+                          description: task.description || "",
+                          status: task.status,
+                          assignedTo: task.assignedTo || "",
+                        });
+                      }
                     } else {
                       onOpenChange(false);
                     }
