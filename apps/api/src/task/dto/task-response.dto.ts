@@ -1,4 +1,5 @@
 import { Task, TaskStatus, TaskType } from '../entities/task.entity';
+import { User } from 'src/user/entities/user.entity';
 
 export class TaskResponseDto {
   readonly id: string;
@@ -6,8 +7,8 @@ export class TaskResponseDto {
   readonly description?: string;
   readonly status: TaskStatus;
   readonly type: TaskType;
-  readonly createdBy: string;
-  readonly assignedTo?: string;
+  readonly createdBy: User;
+  readonly assignedTo?: User;
   readonly parentId?: string;
   readonly startDate?: Date;
   readonly dueDate?: Date;
@@ -20,20 +21,10 @@ export class TaskResponseDto {
     this.type = task.type;
     this.createdBy = task.createdBy;
     this.createdAt = task.createdAt;
-    if (task.description) {
-      this.description = task.description;
-    }
-    if (task.assignedTo) {
-      this.assignedTo = task.assignedTo;
-    }
-    if (task.parentId) {
-      this.parentId = task.parentId;
-    }
-    if (task.startDate) {
-      this.startDate = task.startDate;
-    }
-    if (task.dueDate) {
-      this.dueDate = task.dueDate;
-    }
+    this.description = task.description ?? undefined;
+    this.assignedTo = task.assignedTo ?? undefined;
+    this.parentId = task.parentId ?? undefined;
+    this.startDate = task.startDate ?? undefined;
+    this.dueDate = task.dueDate ?? undefined;
   }
 }

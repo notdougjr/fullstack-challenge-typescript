@@ -4,7 +4,11 @@ import { createContext, useContext, ReactNode } from "react";
 import { toast } from "sonner";
 import { TaskDialog } from "@/components/task-dialog";
 import { useTaskDialogStore } from "@/stores/task-dialog-store";
-import { type Task, type CreateTaskInput } from "@/lib/types";
+import {
+  type Task,
+  type CreateTaskInput,
+  type UpdateTaskInput,
+} from "@/lib/types";
 import { createTask, updateTask, deleteTask } from "@/lib/api";
 
 interface TaskDialogContextType {
@@ -55,19 +59,14 @@ export function TaskDialogProvider({ children }: TaskDialogProviderProps) {
     }
   };
 
-  const handleUpdate = async (updatedTask: Task) => {
+  const handleUpdate = async (updatedTask: UpdateTaskInput) => {
     try {
-      const { id, createdAt, ...updateData } = updatedTask;
+      const { id, ...updateData } = updatedTask;
       const payload: any = {
         ...updateData,
         startDate: updateData.startDate?.toISOString(),
         dueDate: updateData.dueDate?.toISOString(),
       };
-      if (updateData.assignedTo && updateData.assignedTo.trim() !== "") {
-        payload.assignedTo = updateData.assignedTo;
-      } else {
-        delete payload.assignedTo;
-      }
       await updateTask(id, payload);
       toast.success("Tarefa atualizada com sucesso!");
       closeDialog();

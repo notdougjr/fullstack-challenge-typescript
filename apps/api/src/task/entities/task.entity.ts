@@ -3,8 +3,11 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { TaskStatus, TaskType } from '@templo/types';
+import { User } from 'src/user/entities/user.entity';
 
 export { TaskStatus, TaskType };
 
@@ -33,11 +36,13 @@ export class Task {
   })
   type: TaskType;
 
-  @Column({ type: 'uuid' })
-  createdBy: string;
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'createdBy' })
+  createdBy: User;
 
-  @Column({ type: 'uuid', nullable: true })
-  assignedTo?: string;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'assignedTo' })
+  assignedTo?: User;
 
   @Column({ type: 'uuid', nullable: true })
   parentId?: string;

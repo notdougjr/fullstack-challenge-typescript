@@ -28,6 +28,7 @@ import {
   TaskType,
   type Task,
   type CreateTaskInput,
+  type UpdateTaskInput,
 } from "@/lib/types";
 import { getTaskStatusLabel } from "@/lib/task-utils";
 import { fetchUsers } from "@/lib/api";
@@ -45,7 +46,7 @@ interface TaskDialogProps {
   task?: Task | null;
   users?: User[];
   onCreate?: (task: CreateTaskInput) => void;
-  onUpdate?: (task: Task) => void;
+  onUpdate?: (task: UpdateTaskInput) => void;
   onDelete?: (taskId: string) => void;
 }
 
@@ -99,7 +100,7 @@ export function TaskDialog({
         title: task.title,
         description: task.description || "",
         status: task.status,
-        assignedTo: task.assignedTo || "",
+        assignedTo: task.assignedTo?.id || "",
       });
       setIsEditing(false);
     } else if (mode === "create") {
@@ -143,13 +144,11 @@ export function TaskDialog({
         assignedTo: "",
       });
     } else if (mode === "view" && task && onUpdate && isEditing) {
-      const updatePayload: Task = {
-        ...task,
+      const updatePayload: UpdateTaskInput = {
+        id: task.id,
         ...formData,
       };
-      if (formData.assignedTo && formData.assignedTo.trim() !== "") {
-        updatePayload.assignedTo = formData.assignedTo;
-      } else {
+      if (!formData.assignedTo || formData.assignedTo.trim() === "") {
         updatePayload.assignedTo = undefined;
       }
       onUpdate(updatePayload);
@@ -185,8 +184,8 @@ export function TaskDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form 
-          onSubmit={handleSubmit} 
+        <form
+          onSubmit={handleSubmit}
           className="space-y-6"
           onKeyDown={(e) => {
             if (e.key === "Enter" && mode === "view" && !isEditing) {
@@ -244,9 +243,8 @@ export function TaskDialog({
                     </span>
                     <span className="text-sm font-medium text-foreground">
                       {task.assignedTo
-                        ? users.find((u) => u.id === task.assignedTo)
-                            ?.username ||
-                          users.find((u) => u.id === task.assignedTo)?.email ||
+                        ? task.assignedTo.username ||
+                          task.assignedTo.email ||
                           "Usuário não encontrado"
                         : "Não atribuído"}
                     </span>
@@ -390,7 +388,7 @@ export function TaskDialog({
                         title: task.title,
                         description: task.description || "",
                         status: task.status,
-                        assignedTo: task.assignedTo || "",
+                        assignedTo: task.assignedTo?.id || "",
                       });
                     }
                     setIsEditing(true);
@@ -413,7 +411,7 @@ export function TaskDialog({
                           title: task.title,
                           description: task.description || "",
                           status: task.status,
-                          assignedTo: task.assignedTo || "",
+                          assignedTo: task.assignedTo?.id || "",
                         });
                       }
                     } else {

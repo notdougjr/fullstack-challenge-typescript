@@ -12,9 +12,14 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onDragStart, onClick }: TaskCardProps) {
-  const initials = task.assignedTo
-    ? task.assignedTo.substring(0, 2).toUpperCase()
-    : "?";
+  const getInitials = () => {
+    if (!task.assignedTo) return "?";
+
+    const name = task.assignedTo.username || task.assignedTo.email;
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const initials = getInitials();
 
   return (
     <Card
