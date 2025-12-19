@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HashService } from 'src/common/hash/hash.service';
-import { EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -36,10 +36,7 @@ export class UserService {
     });
   }
 
-  async create(
-    createUserDto: CreateUserDto,
-    transactionalEntityManager?: EntityManager,
-  ): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     const hashedPassword = await this.hashService.hash(createUserDto.password);
 
     const userData = {
@@ -48,25 +45,14 @@ export class UserService {
       password: hashedPassword,
     };
 
-    if (transactionalEntityManager) {
-      const exists = await transactionalEntityManager.exists(User, {
-        where: { email: createUserDto.email },
-      });
-      if (exists) {
-        throw new ConflictException('Email already exists');
-      }
-      const user = transactionalEntityManager.create(User, userData);
-      return await transactionalEntityManager.save(user);
-    } else {
-      const exists = await this.userRepository.exists({
-        where: { email: createUserDto.email },
-      });
-      if (exists) {
-        throw new ConflictException('Email already exists');
-      }
-      const user = this.userRepository.create(userData);
-      return this.userRepository.save(user);
+    const exists = await this.userRepository.exists({
+      where: { email: createUserDto.email },
+    });
+    if (exists) {
+      throw new ConflictException('Email already exists');
     }
+    const user = this.userRepository.create(userData);
+    return this.userRepository.save(user);
   }
 
   findAll() {
