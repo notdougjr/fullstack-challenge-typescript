@@ -26,8 +26,8 @@ export class CreateTaskDto {
   type?: TaskType;
 
   @IsUUID()
-  @IsNotEmpty()
-  createdBy: string;
+  @IsOptional()
+  createdBy?: string;
 
   @IsUUID()
   @IsOptional()

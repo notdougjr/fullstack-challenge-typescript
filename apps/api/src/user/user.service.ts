@@ -39,7 +39,7 @@ export class UserService {
   async create(
     createUserDto: CreateUserDto,
     transactionalEntityManager?: EntityManager,
-  ) {
+  ): Promise<User> {
     const hashedPassword = await this.hashService.hash(createUserDto.password);
 
     const userData = {
@@ -56,7 +56,7 @@ export class UserService {
         throw new ConflictException('Email already exists');
       }
       const user = transactionalEntityManager.create(User, userData);
-      return transactionalEntityManager.save(user);
+      return await transactionalEntityManager.save(user);
     } else {
       const exists = await this.userRepository.exists({
         where: { email: createUserDto.email },
@@ -98,6 +98,15 @@ export class UserService {
   }
 
   async save(user: User): Promise<User> {
+    return this.userRepository.save(user);
+  }
+
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string | null,
+  ): Promise<User> {
+    const user = await this.findOneByOrFail({ id: userId });
+    user.refreshToken = refreshToken ?? undefined;
     return this.userRepository.save(user);
   }
 }

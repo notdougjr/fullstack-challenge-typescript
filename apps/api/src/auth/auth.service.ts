@@ -1,13 +1,12 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { HashService } from 'src/common/hash/hash.service';
-import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
-import { DataSource } from 'typeorm';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtPayload } from './types/jwt-payload.type';
@@ -18,28 +17,11 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly hashService: HashService,
     private readonly jwtService: JwtService,
-    private readonly dataSource: DataSource,
   ) {}
 
   async register(registerDto: RegisterDto) {
     try {
-      const existingUser = await this.userService.findOneBy({
-        email: registerDto.email,
-      });
-
-      if (existingUser) {
-        throw new BadRequestException('User with this email already exists');
-      }
-
-      const hashedPassword = await this.hashService.hash(registerDto.password);
-
-      const newUser = this.dataSource.manager.create(User, {
-        email: registerDto.email,
-        password: hashedPassword,
-        username: registerDto.username,
-      });
-
-      const savedUser = await this.dataSource.manager.save(newUser);
+      const savedUser = await this.userService.create(registerDto);
 
       const jwtPayload: JwtPayload = {
         sub: savedUser.id,
@@ -48,11 +30,23 @@ export class AuthService {
 
       const accessToken = await this.jwtService.signAsync(jwtPayload);
 
+      const refreshTokenExpiration = process.env.JWT_REFRESH_EXPIRATION || '7d';
+
+      const refreshToken = await this.jwtService.signAsync(jwtPayload, {
+        expiresIn: refreshTokenExpiration,
+      } as any);
+
+      await this.userService.updateRefreshToken(savedUser.id, refreshToken);
+
       return {
         user: savedUser,
         accessToken,
+        refreshToken,
       };
     } catch (error) {
+      if (error instanceof ConflictException) {
+        throw new BadRequestException('User with this email already exists');
+      }
       if (error instanceof BadRequestException) {
         throw error;
       }
@@ -83,13 +77,54 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(jwtPayload);
 
+    const refreshTokenExpiration = process.env.JWT_REFRESH_EXPIRATION || '7d';
+
+    const refreshToken = await this.jwtService.signAsync(jwtPayload, {
+      expiresIn: refreshTokenExpiration,
+    } as any);
+
+    await this.userService.updateRefreshToken(user.id, refreshToken);
+
     return {
       user,
       accessToken,
+      refreshToken,
     };
   }
 
-  async logout() {
+  async logout(userId: string): Promise<{ message: string }> {
+    await this.userService.updateRefreshToken(userId, null);
+
     return { message: 'Logged out successfully' };
+  }
+
+  async refreshToken(refreshToken: string) {
+    if (!refreshToken) {
+      throw new BadRequestException('Refresh token is required');
+    }
+
+    let payload: JwtPayload;
+    try {
+      payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken);
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const user = await this.userService.findOneByOrFail({ id: payload.sub });
+
+    if (!user.refreshToken || user.refreshToken !== refreshToken) {
+      throw new UnauthorizedException('Refresh token has been revoked');
+    }
+
+    const newJwtPayload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+    };
+
+    const accessToken = await this.jwtService.signAsync(newJwtPayload);
+
+    return {
+      accessToken,
+    };
   }
 }
