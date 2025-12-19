@@ -1,3 +1,54 @@
+# Como Iniciar o Projeto
+
+## Pré-requisitos
+
+- Docker e Docker Compose
+- Editor de código com suporte a DevContainers
+
+## Setup Inicial
+
+### 1. Clone o repositório
+
+```bash
+git clone <url-do-repositorio>
+cd templo
+```
+
+### 2. Abra no DevContainer
+
+Abra o projeto no seu editor de código. Quando solicitado, clique em "Reopen in Container". Ou pressione `F1` ou `Ctrl+Shift+P` (no Mac `Cmd+Shift+P`) e execute o comando `Remote-Containers: Reopen in Container`.
+
+O devcontainer já vem configurado com Node.js, pnpm e PostgreSQL.
+
+### 3. Instale as dependências
+
+```bash
+pnpm install
+```
+
+### 4. Configure as variáveis de ambiente
+
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/front/.env.example apps/front/.env
+```
+
+### 5. Execute as migrations
+
+```bash
+pnpm --filter api migration:run
+```
+
+### 6. Inicie o projeto
+
+```bash
+pnpm turbo start:dev
+```
+
+Este comando irá iniciar tanto o frontend quanto o backend simultaneamente.
+
+---
+
 # Arquitetura
 
 Após a leitura das instruções em [README_INSTRUCTIONS.md](./README_INSTRUCTIONS.md), decidi optar por uma infraestrutura Monorepo - no mesmo repositório irei compartilhar configurações entre front e back, por ser uma estrutura simples e ao mesmo tempo robusta, que irá me permitir ter uma visão compacta do código.
